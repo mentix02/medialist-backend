@@ -1,7 +1,7 @@
 Django==2.2.7
 mysqlclient==1.4.5
-django-redis==2.2.7
+django-redis==4.10.0
 django-taggit==1.1.0
-python-decouple==3.1
+python-decouple==3.3
 djangorestframework==3.10.3
 django-taggit-serializer==0.1.7
