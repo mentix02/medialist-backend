@@ -3,6 +3,7 @@ Helper methods that aid in testing, writing views,
 and meagre model querying stuff for the Author model.
 """
 import json
+import uuid
 import typing
 
 from author.models import Author
@@ -84,10 +85,21 @@ def get_queried_author_serialized_data(username: str, token: bool = False) -> Re
         return ReturnDict(error='User not found.', serializer=None)
 
 
-def get_json(request: Response) -> typing.Dict[typing.Any, typing.Any]:
-    body = request.content.decode()
+def get_json(response: Response) -> typing.Dict[typing.Any, typing.Any]:
+    body = response.content.decode()
     return json.loads(body)
 
 
 def auth_header(key: str) -> str:
     return 'Token {}'.format(key)
+
+
+def is_valid_uuid5(uuid_str: str) -> bool:
+    """
+    Copied shamelessly from http://bit.ly/33Omn1g.
+    """
+    try:
+        val = uuid.UUID(uuid_str, version=5)
+    except ValueError:
+        return False
+    return val.hex == uuid_str
