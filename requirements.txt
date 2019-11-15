@@ -1,4 +1,5 @@
 Django==2.2.7
+Faker==2.0.4
 mysqlclient==1.4.5
 django-redis==4.10.0
 django-taggit==1.1.0
