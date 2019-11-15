@@ -50,7 +50,7 @@ def create_author_secret_key_and_send_auth_email(sender, instance: Author, **kwa
 
         subject, from_email, to = 'Welcome To The Medialist', settings.EMAIL_HOST_USER, instance.email
         html_content = render_to_string('email/email-confirmation.html', {
-            'activation_url': 'http://' + 'localhost:8000' + reverse('author:activate', kwargs={
+            'activation_url': 'http://' + 'localhost:8000' + reverse('author:verify', kwargs={
                 'secret_key': str(secret_key)
             })
         })
