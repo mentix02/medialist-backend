@@ -3,6 +3,7 @@ Definition of Author model. Akin to the "user" of the website. Author is
 a user who can write posts, bookmark posts, comment as well as "like" posts.
 """
 from django.db import models
+from django.shortcuts import reverse
 from django.contrib.auth.models import AbstractUser
 
 
@@ -61,3 +62,6 @@ class Author(AbstractUser):
 
     def get_articles(self) -> models.QuerySet:
         return self.articles.filter(draft=False)
+
+    def get_absolute_url(self) -> str:
+        return reverse('author:details', kwargs={'username': self.username})
