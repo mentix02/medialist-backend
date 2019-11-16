@@ -58,7 +58,7 @@ def get_author_serialized_data(author: Author, token: bool = False) -> ReturnDic
         # be utilized when an authenticated
         # request comes through - either
         # when Author is signing up or logging in.
-        key = Token.objects.get(author).key
+        key = Token.objects.get(user__exact=author).key
         data['token'] = key
 
     return data
@@ -94,12 +94,12 @@ def auth_header(key: str) -> str:
     return 'Token {}'.format(key)
 
 
-def is_valid_uuid5(uuid_str: str) -> bool:
+def is_valid_uuid(uuid_str: str) -> bool:
     """
     Copied shamelessly from http://bit.ly/33Omn1g.
     """
     try:
-        val = uuid.UUID(uuid_str, version=5)
+        uuid.UUID(uuid_str)
+        return True
     except ValueError:
         return False
-    return val.hex == uuid_str
