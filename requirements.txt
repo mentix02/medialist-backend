@@ -1,4 +1,4 @@
-Faker=2.0.4
+Faker==2.0.4
 Django==2.2.7
 cloudinary==1.18.2
 mysqlclient==1.4.5
