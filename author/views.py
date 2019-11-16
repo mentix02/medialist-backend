@@ -7,10 +7,11 @@ as functions will not be accepted.
 import re
 import typing
 
+from django.http import Http404
 from django.http.request import HttpRequest
 from django.shortcuts import redirect, get_object_or_404
 
-from author import utils
+from author import utils as u
 from author.models import Author
 from author.serializers import (
     AuthorListSerializer,
@@ -86,7 +87,7 @@ class AuthorCreateAPIView(APIView):
                     'detail': 'Requires 150 characters or fewer. Letters, digits and @/./+/-/_ only.'
                 }, status=422)
 
-            if utils.is_available(username):
+            if u.is_available(username):
                 # Get more data since username is not taken.
                 try:
                     # Make a dictionary of data so that if
@@ -106,7 +107,7 @@ class AuthorCreateAPIView(APIView):
 
                     author = Author.objects.create_user(**author_data)
 
-                    author_details = utils.get_author_serialized_data(author, True)
+                    author_details = u.get_author_serialized_data(author, True)
 
                     return Response(author_details)
                 except KeyError as field:
@@ -138,22 +139,33 @@ class AuthorAuthenticateAPIView(APIView):
 
     @staticmethod
     def get(request, secret_key):
-        author = get_object_or_404(Author, secret_key__exact=secret_key)
-        author.verify()
-        return redirect('feed:index')
+        if u.is_valid_uuid(str(secret_key)):
+            author = get_object_or_404(Author, secret_key__exact=secret_key)
+            author.verify()
+            return redirect('feed:index')
+        else:
+            raise Http404()
 
 
 class AuthorUpdateAPIView(APIView):
     """
     Similar to AuthorCreateAPIView just instead of objects.create, it calls objects.update
     by de-serializing data from a dictionary into a key value pair arguments using kwargs.
-    Read why this is done inside of the AuthorCreateAPIView.
+    Read why this is done inside of the AuthorCreateAPIView. Note - this view does not handle
+    changing of the password. That view remains to be written. It'll be separate for reusable
+    purposes such as a ForgetPassword view. Further, I think allowing Authors to change their
+    emails is not such a good idea either without some form of validation. Alright. So be it.
+    Password and email fields will have their own separate views for updating.
+
+    TODO write a view for updating an Author's password with some form of validation.
+
+    TODO write a view for updating an Authors' email field with validation.
     """
 
     permission_classes = (IsAuthenticated,)
 
     @staticmethod
-    def post(request):
+    def patch(request):
 
         author: Author = request.user
 
@@ -166,9 +178,12 @@ class AuthorUpdateAPIView(APIView):
             'first_name': request.POST.get('first_name', author.first_name)
         }
 
-        if data['username'] == author.username or utils.is_available(data['username']):
-            author.objects.update(**data)
+        if data['username'] == author.username or u.is_available(data['username']):
+            for field, value in data.items():
+                if getattr(author, field) != value:
+                    setattr(author, field, value)
+            author.save()
 
-            return utils.get_author_serialized_data(author)
+            return Response(u.get_author_serialized_data(author, token=True))
         else:
-            return Response({'error': 'Username not available.'}, status=409)
+            return Response({'detail': f"User '{data['username']}' already exists."}, 409)
