@@ -16,8 +16,8 @@ class Command(BaseCommand):
 
             print('Creating author...', end=' ')
             Author.objects.create_superuser(
-                password='aaa',
                 first_name='Manan',
+                password='abcd1432',
                 username='mentix02',
                 email='manan.yadav02@gmail.com'
             )
