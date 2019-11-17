@@ -15,7 +15,7 @@ class AuthorModelTest(TestCase):
             email='manan.yadav02@example.com',
             bio='I like to write so I wrote this site.',
         )
-        
+
         cls.aryan: Author = Author.objects.create_user(
             first_name='Aryan',
             password='abcd1432',
