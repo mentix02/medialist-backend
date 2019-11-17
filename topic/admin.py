@@ -4,8 +4,8 @@ from topic.models import Topic
 
 
 class TopicAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'created_on')
     list_display_links = ('name',)
+    list_display = ('id', 'name', 'article_count')
     prepopulated_fields = {
         'slug': ('name', )
     }

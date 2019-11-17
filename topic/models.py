@@ -79,6 +79,10 @@ class Topic(models.Model):
     def get_absolute_url(self):
         return reverse('topic:detail', kwargs={'slug': self.slug})
 
+    @property
+    def article_count(self):
+        return self.get_articles().count()
+
     def __str__(self):
         return self.name
 
