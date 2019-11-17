@@ -1,3 +1,14 @@
 from django.contrib import admin
 
-# Register your models here.
+from article.models import Article
+
+
+class ArticleAdmin(admin.ModelAdmin):
+    list_display_links = ('title',)
+    list_display = ('id', 'title', 'author', 'created_on')
+    prepopulated_fields = {
+        'slug': ('title',)
+    }
+
+
+admin.site.register(Article, ArticleAdmin)
