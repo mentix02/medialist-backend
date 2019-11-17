@@ -25,9 +25,11 @@ class AuthorRetrieveAPIViewTest(APITestCase):
     """
     Simple unit tests for checking authentication, data formatting,
     and basic functionality for any Author based retrieval views
-    such as AuthorListAPIView or AuthorDetailAPIView. Currently it
-    only uses the django.test.Client but future tests might include
-    drf's APIClient. To be decided.
+    such as AuthorListAPIView or AuthorDetailAPIView. It's an APITestCase
+    provided by drf and that means that it uses the APIClient to make
+    requests. That's a huge advantage because that lets us use token
+    authentication in an easy way instead of doing some monkey patching
+    magic.
     """
 
     @classmethod
@@ -104,6 +106,56 @@ class AuthorRetrieveAPIViewTest(APITestCase):
         self.assertEqual(data, {
             'detail': 'You do not have permission to perform this action.'
         })
+
+    def test_valid_authentication(self):
+        """
+        Makes a valid POST request to /api/authors/authenticate/ by provided
+        a valid username & password combo and compares authtoken provided to
+        the one in the database.
+        """
+
+        for author in self.authors + [self.super_author]:
+            response: Response = self.client.post(BASE_URL + '/authenticate/', data={
+                'username': author.username,
+                'password': 'abcd1432'  # Might be a better way to store random passwords.
+            })
+            data = u.get_json(response)
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(data, {
+                'token': author.get_key()
+            })
+
+    def test_invalid_authentication(self):
+        """
+        Similar to test_valid_authenticate except this tests for invalid
+        credentials and incomplete data. Easy.
+        """
+
+        # Test for incomplete data.
+        for field in ('username', 'password'):
+            response: Response = self.client.post(BASE_URL + '/authenticate/', data={
+                field: random.choice(self.authors).username  # Random value because it doesn't really matter
+            })
+            data = u.get_json(response)
+
+            self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+            self.assertEqual(data, {
+                'detail': f"Field '{'password' if field.startswith('u') else 'username'}' not provided."
+            })
+
+        # Test for invalid password
+        for author in self.authors + [self.super_author]:
+            response = self.client.post(BASE_URL + '/authenticate/', data={
+                'username': author.username,
+                'password': 'aaaaabbbbccccdd' # invalid password
+            })
+            data = u.get_json(response)
+
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+            self.assertEqual(data, {
+                'detail': 'Invalid credentials.'
+            })
 
 
 class AuthorCreationAPIViewTest(APITestCase):
