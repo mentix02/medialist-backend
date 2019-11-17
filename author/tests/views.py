@@ -210,10 +210,12 @@ class AuthorCreationAPIViewTest(APITestCase):
         })
 
         # Now check with an invalid username - one having a space and a
-        # dollar sign. We dont' even need to send any more data since
-        # the view immediately returns an invalid username error response.
+        # dollar sign. We dont' even need to send any more data (other than email)
+        # since the view immediately returns an invalid username (or email) error
+        # if they (email and username) aren't valid.
         response = self.client.post(BASE_URL + '/create/', {
-            'username': 'mentix 02$'
+            'username': 'mentix 02$',
+            'email': 'manan.yadav02@gmail.com'
         })
         data = u.get_json(response)
 
