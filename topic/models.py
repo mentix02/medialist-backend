@@ -26,19 +26,17 @@ class Topic(models.Model):
          of promoting them to staff members.
     """
 
-    name = models.CharField(max_length=100)
     description = models.CharField(max_length=200)
+
+    # After much thought, the names for all topics
+    # should be unique because if there's even a
+    # similar sounding topic, then chances are that
+    # the same topic has already been covered in the past.
+    name = models.CharField(max_length=100, unique=True)
 
     # Lets Authors upload a file for the thumbnail
     # to the Cloudinary server.
     thumbnail = CloudinaryField(null=True, blank=True)
-
-    # Standard way of keeping an updated timestamp
-    # that is separate from a create on timestamp.
-    # Look into article/models.py documentation for
-    # more info about datetime fields - in the same
-    # named fields.
-    updated_on = models.DateTimeField(auto_now=True)
 
     # Read above.
     created_on = models.DateTimeField(auto_now_add=True)
@@ -46,7 +44,7 @@ class Topic(models.Model):
     # Prepopulated on save (or update) by signals
     # living in topic/signals.py and initialized from
     # topic/apps.py when loaded into the settings.
-    slug = models.SlugField(max_length=200, null=True, blank=True)
+    slug = models.SlugField(max_length=200, null=True, blank=True, unique=True)
 
     # Every Topic instance has to be created by an
     # Author instance but it is modeled exactly like
@@ -81,4 +79,4 @@ class Topic(models.Model):
         return self.articles.filter(draft=False)
 
     class Meta:
-        ordering = ('-created_on', '-updated_on', '-pk')
+        ordering = ('-created_on', '-pk')
