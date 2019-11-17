@@ -10,6 +10,7 @@ import typing
 from django.http import Http404
 from django.http.request import HttpRequest
 from django.contrib.auth import authenticate
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, get_object_or_404
 
 from author import utils as u
@@ -72,14 +73,26 @@ class AuthorCreateAPIView(APIView):
     @staticmethod
     def post(request: HttpRequest):
 
-        # Get username from POST data.
+        # Get username and email from POST data.
         data = request.POST
         # noinspection PyArgumentList
-        username = data.get(key='username')
+        username, email = data.get(key='username'), data.get(key='email')
 
         if username:
 
-            # Check if username is available and is valid.
+            # Check if username and email are available and are valid.
+
+            # Email verification.
+            if email and u.is_valid_email(email):
+                try:
+                    Author.objects.get(email__iexact=email)
+                    return Response({
+                        'detail': f"Author with email '{email}' already exists."
+                    }, status=409)
+                except ObjectDoesNotExist:
+                    pass
+            else:
+                return Response({'detail': f"Field 'email' not provided."}, 422)
 
             # Implements a sanity check for username format.
             expr = re.compile(r'^[\w.@+-]+$')
