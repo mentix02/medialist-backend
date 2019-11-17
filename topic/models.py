@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.shortcuts import reverse
 
 from cloudinary.models import CloudinaryField
 
@@ -72,11 +73,14 @@ class Topic(models.Model):
         else:
             return self.thumbnail_url
 
-    def __str__(self):
-        return self.name
-
     def get_articles(self):
         return self.articles.filter(draft=False)
+
+    def get_absolute_url(self):
+        return reverse('topic:detail', kwargs={'slug': self.slug})
+
+    def __str__(self):
+        return self.name
 
     class Meta:
         ordering = ('-created_on', '-pk')
