@@ -1,3 +1,6 @@
+"""
+CRUD views for the Topic model.
+"""
 from author.models import Author
 
 from topic.models import Topic
@@ -6,6 +9,7 @@ from topic.serializers import (
     TopicDetailSerializer
 )
 
+from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.views import APIView
@@ -24,10 +28,34 @@ class TopicListAPIView(ListAPIView):
 
 
 class TopicDetailAPIView(RetrieveAPIView):
-    lookup_field = 'slug'
+    """
+    Queries all Topic instances in database according to the slug
+    provided in the url and returns serialized JSON object. Slug
+    lookups, I'm assuming, are slower than primary key queries but
+    it's good for search engine optimization, especially for Google.
+    """
     lookup_url_kwarg = 'slug'
+    lookup_field = 'slug__iexact'
     queryset = Topic.objects.all()
     serializer_class = TopicDetailSerializer
+
+
+class TopicDeleteAPIView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    @staticmethod
+    def delete(request, slug):
+        author: Author = request.user
+
+        topic: Topic = get_object_or_404(Topic, slug__iexact=slug)
+
+        # Check if topic belongs to author
+        if topic.author_id == author.id:
+            topic.delete()
+            return Response({'detail': 'Deleted successfully.'}, status=204)
+        else:
+            return Response({'detail': 'Deletion is not authorized.'}, status=401)
 
 
 class TopicCreateAPIView(APIView):
@@ -75,6 +103,9 @@ class TopicCreateAPIView(APIView):
             return Response({'detail': "Field 'name' not provided."}, status=422)
 
         try:
+            # Aggregate data in a dictionary so that it can be
+            # unpacked as kwargs in objects.create method and if
+            # there's a key missing, it can raise a field error.
             topic_data = {
                 'name': name,
                 'author': author,
