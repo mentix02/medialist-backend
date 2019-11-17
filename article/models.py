@@ -40,20 +40,14 @@ class Article(models.Model):
     # No text limit. Not yet.
     content = models.TextField()
 
+    title = models.CharField(max_length=150)
+
     # An article by default is NOT
     # a draft. Authors would have to
     # manually check the draft input
     # to save it to their Author
     # dashboard for their eyes only.
     draft = models.BooleanField(default=False)
-
-    # Objectivity is defined as a floating
-    # point value that will be determined
-    # by the machine learning model. It will
-    # almost always be leaning towards 0.
-    objectivity = models.FloatField()
-
-    title = models.CharField(max_length=150)
 
     # This field is updated automatically
     # when an Article is update. It's also
@@ -113,6 +107,12 @@ class Article(models.Model):
 
     # User uploaded file goes to Cloudinary server.
     thumbnail = CloudinaryField(null=True, blank=True)
+
+    # Objectivity is defined as a floating
+    # point value that will be determined
+    # by the machine learning model. It will
+    # almost always be leaning towards 0.
+    objectivity = models.FloatField(blank=True, default=0, editable=False)
 
     # In case Author does not want to upload a
     # file image him/herself.
