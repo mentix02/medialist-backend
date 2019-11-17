@@ -9,7 +9,11 @@ import typing
 from author.models import Author
 from author.serializers import AuthorListSerializer
 
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import EmailValidator
+from django.core.exceptions import (
+    ValidationError,
+    ObjectDoesNotExist
+)
 
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -102,4 +106,18 @@ def is_valid_uuid(uuid_str: str) -> bool:
         uuid.UUID(uuid_str)
         return True
     except ValueError:
+        return False
+
+
+def is_valid_email(email: str) -> bool:
+    """
+    Simple email format validator using
+    Django's internal email validator.
+    """
+    validator = EmailValidator()
+    try:
+        validator(email)
+        # Since validator accepted email,
+        return True
+    except ValidationError:
         return False
