@@ -1,11 +1,11 @@
 from django.dispatch import receiver
 from django.utils.text import slugify
-from django.db.models.signals import post_save
+from django.db.models.signals import pre_save
 
 from topic.models import Topic
 
 
 # noinspection PyUnusedLocal
-@receiver(post_save, sender=Topic)
-def create_author_secret_key(sender, instance: Topic, **kwargs):
-    slug = slugify(instance.name)
+@receiver(pre_save, sender=Topic)
+def generate_topic_slug(sender, instance: Topic, **kwargs):
+    instance.slug = slugify(instance.name)
