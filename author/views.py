@@ -9,6 +9,7 @@ import typing
 
 from django.http import Http404
 from django.http.request import HttpRequest
+from django.contrib.auth import authenticate
 from django.shortcuts import redirect, get_object_or_404
 
 from author import utils as u
@@ -130,7 +131,7 @@ class AuthorCreateAPIView(APIView):
             return Response({'detail': f"Field 'username' not provided."}, 422)
 
 
-class AuthorAuthenticateAPIView(APIView):
+class AuthorVerifyAPIView(APIView):
     """
     Takes in a GET request with the secret key as a part of the url and
     redirects to the homepage of The Medialist; to be decided if the user
@@ -160,6 +161,17 @@ class AuthorUpdateAPIView(APIView):
     TODO write a view for updating an Author's password with some form of validation.
 
     TODO write a view for updating an Authors' email field with validation.
+
+    Requires ->
+        + application/x-www-form-urlencoded data
+        including ->
+            bio: String [OPTIONAL]
+            username: String [OPTIONAL]
+            first_name: String [OPTIONAL]
+
+        + headers
+        including ->
+            Authorization: Token {valid token}
     """
 
     permission_classes = (IsAuthenticated,)
@@ -187,3 +199,37 @@ class AuthorUpdateAPIView(APIView):
             return Response(u.get_author_serialized_data(author, token=True))
         else:
             return Response({'detail': f"User '{data['username']}' already exists."}, 409)
+
+
+class AuthorRetrieveTokenView(APIView):
+    """
+    Simply returns the authtoken in exchange for a username and password combo.
+    Returns an error if credentials aren't provided; same for invalid ones.
+    """
+
+    @staticmethod
+    def post(request):
+
+        try:
+            # Gather data.
+            credentials = {
+                'username': request.POST['username'],
+                'password': request.POST['password']
+            }
+        except KeyError as field:
+            # In case there wasn't a matching field in the
+            # request.POST dictionary-like object.
+            return Response({'detail': f"Field {str(field)} not provided."}, status=422)
+
+        # Authenticate Author with credentials.
+        author: Author = authenticate(**credentials)
+
+        if author is not None:
+            return Response({
+                'token': author.get_key()
+            })
+        else:
+            # If no Author was found with matching credentials.
+            return Response({
+                'detail': 'Invalid credentials.'
+            }, status=401)
