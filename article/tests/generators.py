@@ -10,8 +10,8 @@ from article.models import Article
 fake = faker.Faker()
 
 
-TOPIC_IDS = [topic[0] for topic in Topic.objects.all()]
-AUTHOR_IDS = [author[0] for author in Author.objects.all()]
+TOPIC_IDS = [topic[0] for topic in Topic.objects.values_list('id')]
+AUTHOR_IDS = [author[0] for author in Author.objects.values_list('id')]
 
 
 def create_article(draft: bool = random.random() < 0.8) -> Article:
