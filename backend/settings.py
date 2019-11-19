@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     # third party
     'taggit',
     'cloudinary',
+    'corsheaders',
     'rest_framework',
     'taggit_serializer',
     'rest_framework.authtoken'
@@ -34,6 +35,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -135,3 +137,5 @@ cloudinary.config(**{
     'api_key': config('CLOUDINARY_API_KEY'),
     'api_secret': config('CLOUDINARY_SECRET')
 })
+
+CORS_ORIGIN_ALLOW_ALL = True
