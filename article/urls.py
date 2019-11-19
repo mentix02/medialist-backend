@@ -5,5 +5,5 @@ from django.urls import path
 app_name = 'article'
 
 urlpatterns = (
-    path('', RecentArticleListAPIView.as_view(), name='list'),
+    path('recent/', RecentArticleListAPIView.as_view(), name='recent'),
 )
