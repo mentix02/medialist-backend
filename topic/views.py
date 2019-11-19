@@ -9,6 +9,8 @@ from topic.serializers import (
     TopicDetailSerializer
 )
 
+from article.serializers import ArticleListSerializer
+
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -127,3 +129,11 @@ class TopicCreateAPIView(APIView):
             return Response({'detail': f"Field {str(field)} not provided."}, status=422)
         except Exception as e:
             return Response({'detail': str(e)}, status=500)
+
+
+class TopicSortedArticlesAPIView(ListAPIView):
+    serializer_class = ArticleListSerializer
+
+    def get_queryset(self):
+        topic = get_object_or_404(Topic, slug__iexact=self.kwargs.get('slug', ''))
+        return topic.get_articles()
