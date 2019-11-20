@@ -30,5 +30,5 @@ def create_topic(author_id: int) -> Topic:
         author_id=author_id,
         name=fake.text(45)[:-1],
         description=fake.text(150),
-        thumbnail_url=f'https://picsum.photos/id/{choice(THUMBNAIL_URL)}/1900/1080',
+        thumbnail_url=f'https://picsum.photos/id/{choice(THUMBNAIL_URL_IDs)}/1900/1080',
     )
