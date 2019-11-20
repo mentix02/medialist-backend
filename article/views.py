@@ -14,5 +14,5 @@ class RecentArticleListAPIView(ListAPIView):
 
     def get_queryset(self):
         N = self.request.GET.get('N', 12)
-        articles = Article.objects.filter(draft=False)[N:]
+        articles = Article.objects.filter(draft=False)[:N]
         return articles
