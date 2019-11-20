@@ -139,3 +139,5 @@ cloudinary.config(**{
 })
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+TAGGIT_CASE_INSENSITIVE = True
