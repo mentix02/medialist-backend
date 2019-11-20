@@ -1,4 +1,5 @@
 from topic.tests.views import (
     TopicRetrieveAPIViewTest,
-    TopicCreationAPIViewTest
+    TopicCreationAPIViewTest,
+    TopicDeletionAPIViewTest
 )

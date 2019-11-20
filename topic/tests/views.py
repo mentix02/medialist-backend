@@ -2,11 +2,13 @@
 Tests for CRUD operations on views for the Topic model
 with proper authentication and validation are written here.
 """
+import random
 import typing
 
 from faker import Faker
 
 from django.shortcuts import reverse
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -158,3 +160,84 @@ class TopicCreationAPIViewTest(APITestCase):
         self.assertEqual(data, TopicDetailSerializer(
             Topic.objects.last()
         ).data)
+
+
+class TopicDeletionAPIViewTest(APITestCase):
+
+    @classmethod
+    def setUpTestData(cls) -> None:
+
+        cls.authors: typing.List[typing.Tuple[int, Author]] = [
+            (index, create_author()) for index in range(1, 3)
+        ]
+
+        # Create 4 topics, 2 by each author.
+        cls.author_1_topics: typing.List[Topic] = [
+            create_topic(cls.authors[0][1].pk) for _ in range(2)
+        ]
+        cls.author_2_topics: typing.List[Topic] = [
+            create_topic(cls.authors[1][1].pk) for _ in range(2)
+        ]
+        cls.topics: typing.Set[Topic] = set(cls.author_1_topics + cls.author_2_topics)
+
+    def test_unauthenticated_deletion(self):
+        """
+        Make unauthenticated request to /api/topics/delete/<slug:slug>/ to
+        assert Unauthorized Error and apt response.
+        """
+
+        response: Response = self.client.delete(reverse('topic:delete', kwargs={
+            'slug': random.choice(self.author_1_topics).slug
+        }))
+        data = u.get_json(response)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(data, {'detail': 'Authentication credentials were not provided.'})
+
+    def test_invalid_permission_topic_deletion(self):
+        """
+        Make valid authorized delete requests to /api/topics/delete/<slug:slug>/
+        to raise a Forbidden error with apt response.
+        """
+
+        for index, author in self.authors:
+
+            # Authenticate delete request with current author
+            self.client.credentials(HTTP_AUTHORIZATION=auth_header(author.get_key()))
+
+            topics_not_by_author = self.topics.difference(getattr(self, f'author_{index}_topics'))
+
+            for topic in topics_not_by_author:
+                response: Response = self.client.delete(reverse('topic:delete', kwargs={
+                    'slug': topic.slug
+                }))
+                data = u.get_json(response)
+                self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+                self.assertEqual(data, {'detail': 'Deletion is not authorized.'})
+
+    def test_valid_permission_topic_deletion(self):
+        """
+        Last test to run in this APITestCase - makes valid delete requests
+        /api/topics/delete/<slug:slug>/ and compares status code and check
+        for existence inside of database.
+        """
+
+        for index, author in self.authors:
+
+            self.client.credentials(HTTP_AUTHORIZATION=auth_header(author.get_key()))
+            topics_by_author = getattr(self, f'author_{index}_topics')
+
+            for topic in topics_by_author:
+
+                topic_slug = topic.slug
+
+                response: Response = self.client.delete(reverse('topic:delete', kwargs={
+                    'slug': topic_slug
+                }))
+                # No need to get data since a 204 response doesn't return anything.
+
+                self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+                # Now check for data.
+                with self.assertRaises(ObjectDoesNotExist):
+                    Topic.objects.get(slug__iexact=topic_slug)
