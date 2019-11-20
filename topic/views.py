@@ -123,7 +123,7 @@ class TopicCreateAPIView(APIView):
 
             topic = Topic.objects.create(**topic_data)
 
-            return Response(TopicListSerializer(topic).data, status=201)
+            return Response(TopicDetailSerializer(topic).data, status=201)
 
         except KeyError as field:
             return Response({'detail': f"Field {str(field)} not provided."}, status=422)
