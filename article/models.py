@@ -131,6 +131,14 @@ class Article(models.Model):
             return self.thumbnail_url
 
     @property
+    def timestamp(self):
+        return self.updated_on if self.updated_on else self.created_on
+
+    @property
+    def truncated_content(self):
+        return self.content[:150] + '...'
+
+    @property
     def objective(self) -> bool:
         """
         Returns a boolean value if the objectivity computed by the model
@@ -152,3 +160,6 @@ class Article(models.Model):
         add a timestamp parameter as well to give a more dashboard type feel.
         """
         return self.title
+
+    class Meta:
+        ordering = ('-created_on', '-updated_on', '-pk')
