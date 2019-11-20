@@ -57,7 +57,7 @@ class TopicDeleteAPIView(APIView):
             topic.delete()
             return Response({'detail': 'Deleted successfully.'}, status=204)
         else:
-            return Response({'detail': 'Deletion is not authorized.'}, status=401)
+            return Response({'detail': 'Deletion is not authorized.'}, status=403)
 
 
 class TopicCreateAPIView(APIView):
