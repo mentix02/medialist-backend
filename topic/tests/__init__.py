@@ -1,1 +1,4 @@
-from topic.tests.views import TopicRetrieveAPIViewTest
+from topic.tests.views import (
+    TopicRetrieveAPIViewTest,
+    TopicCreationAPIViewTest
+)
