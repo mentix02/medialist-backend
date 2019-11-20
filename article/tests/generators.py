@@ -1,4 +1,5 @@
 import random
+import typing
 
 import faker
 
@@ -9,14 +10,20 @@ from article.models import Article
 
 fake = faker.Faker()
 
-
+TAGS = ['idea', 'good', 'west', 'animal', 'foot', 'for', 'time', 'hello']
 TOPIC_IDS = [topic[0] for topic in Topic.objects.values_list('id')]
 AUTHOR_IDS = [author[0] for author in Author.objects.values_list('id')]
 
 
 def create_article(draft: bool = random.random() > 0.8, **kwargs) -> Article:
+
+    def _random_tags() -> typing.List[str]:
+        nums = random.randint(2, len(TAGS) - 1)
+        return list({random.choice(TAGS) for _ in range(nums)})
+
     article = Article.objects.create(
         draft=draft,
+        tags=_random_tags(),
         title=fake.text(50).title()[:-1],
         topic_id=kwargs.get('topic_id') or random.choice(TOPIC_IDS),
         author_id=kwargs.get('author_id') or random.choice(AUTHOR_IDS),
