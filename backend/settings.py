@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     'cloudinary',
     'corsheaders',
     'rest_framework',
-    'taggit_serializer',
     'rest_framework.authtoken'
 ]
 
