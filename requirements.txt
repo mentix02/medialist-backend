@@ -1,10 +1,9 @@
 Faker==2.0.4
 Django==2.2.7
 cloudinary==1.18.2
-mysqlclient==1.4.5
+mysqlclient==1.4.6
 django-redis==4.10.0
 django-taggit==1.1.0
 python-decouple==3.3
 django-cors-headers==3.2.0
 djangorestframework==3.10.3
-django-taggit-serializer==0.1.7
