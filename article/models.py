@@ -1,6 +1,8 @@
 """
 Article model definition.
 """
+import logging
+
 from django.db import models
 from django.conf import settings
 
@@ -8,6 +10,15 @@ from topic.models import Topic
 
 from taggit.managers import TaggableManager
 from cloudinary.models import CloudinaryField
+
+
+logger = logging.getLogger(__name__)
+
+
+class ArticleManager(models.Manager):
+    def all(self):
+        logger.warning('All Article instances are being fetched.')
+        return self.get_queryset()
 
 
 class Article(models.Model):
@@ -33,6 +44,8 @@ class Article(models.Model):
 
     TODO build and train the model.
     """
+
+    objects = ArticleManager()
 
     tags = TaggableManager()
 
