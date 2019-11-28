@@ -15,7 +15,7 @@ TOPIC_IDS = [topic[0] for topic in Topic.objects.values_list('id')]
 AUTHOR_IDS = [author[0] for author in Author.objects.values_list('id')]
 
 
-def create_article(draft: bool = random.random() > 0.8, **kwargs) -> Article:
+def create_article(draft: bool = random.random() > 0.93, **kwargs) -> Article:
 
     def _random_tags() -> typing.List[str]:
         nums = random.randint(2, len(TAGS) - 1)
