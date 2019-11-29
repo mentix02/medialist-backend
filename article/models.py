@@ -17,6 +17,12 @@ logger = logging.getLogger(__name__)
 
 class ArticleManager(models.Manager):
     def all(self):
+        """
+        A custom logging warning is raised if ALL articles are
+        queried since that's not something one would want to do
+        in production. It might be completely disallowed but the
+        admin panel might call it and that might break things.
+        """
         logger.warning('All Article instances are being fetched.')
         return self.get_queryset()
 
@@ -33,10 +39,6 @@ class Article(models.Model):
     It's not used much except for serializing articles. An
     internal way for converting the tags to JSON can be implemented
     to reduce dependencies.
-
-    TODO Work on an internal method for converting tags into
-         JSON valid list of strings - would have to make it
-         just as easy to configure and as good with performance. TBD.
 
     There's an objectivity metric that is discussed below - it's
     used for the machine learning model (not made yet) to predict
