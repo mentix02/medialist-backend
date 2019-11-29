@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'topic.apps.TopicConfig',
     'author.apps.AuthorConfig',
     'article.apps.ArticleConfig',
+    'bookmark.apps.BookmarkConfig',
     # third party
     'taggit',
     'cloudinary',

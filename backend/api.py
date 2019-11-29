@@ -4,4 +4,5 @@ urlpatterns = (
     path('topics/', include('topic.urls')),
     path('authors/', include('author.urls')),
     path('articles/', include('article.urls')),
+    path('bookmark/', include('bookmark.urls')),
 )
