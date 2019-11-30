@@ -1,13 +1,15 @@
+from article.models import Article
 from bookmark.models import Bookmark
 from bookmark.serializers import BookmarkSerializer
 
 from django.db.models import QuerySet
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.parsers import FormParser
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import FormParser, MultiPartParser
 
 
 class BookmarkAPIView(APIView):
@@ -16,8 +18,8 @@ class BookmarkAPIView(APIView):
     instance based on it's existence - if a
     """
 
-    parser_classes = (FormParser,)
     permission_classes = (IsAuthenticated,)
+    parser_classes = (FormParser, MultiPartParser)
 
     @staticmethod
     def post(request) -> Response:
@@ -31,23 +33,30 @@ class BookmarkAPIView(APIView):
 
         author = request.user
 
-        bookmark, created = Bookmark.objects.get_or_create(author=author, article_id=article_id)
+        try:
+            article = Article.objects.get(id=article_id, draft=False)
 
-        if not created:
-            # If a bookmark wasn't created, i.e. it already existed,
-            # then delete it and send appropriate response.
-            bookmark.delete()
+            bookmark, created = Bookmark.objects.get_or_create(author=author, article=article)
+
+            if not created:
+                # If a bookmark wasn't created, i.e. it already existed,
+                # then delete it and send appropriate response.
+                bookmark.delete()
+                return Response({
+                    'detail': {
+                        'action': 'deleted'
+                    }
+                })
+            else:
+                return Response({
+                    'detail': {
+                        'action': 'created'
+                    }
+                }, status=201)
+        except ObjectDoesNotExist:
             return Response({
-                'detail': {
-                    'action': 'deleted'
-                }
-            })
-        else:
-            return Response({
-                'detail': {
-                    'action': 'created'
-                }
-            })
+                'detail': 'Article does not exist.'
+            }, status=404)
 
 
 class ArticleSortedByBookmarksAPIView(ListAPIView):
