@@ -16,6 +16,7 @@ from django.shortcuts import redirect, get_object_or_404
 
 from author import utils as u
 from author.models import Author
+from topic.serializers import TopicListSerializer
 from article.serializers import ArticleListSerializer
 from author.serializers import (
     AuthorListSerializer,
@@ -262,3 +263,14 @@ class AuthorSortedArticleListAPIView(ListAPIView):
     def get_queryset(self) -> QuerySet:
         author = get_object_or_404(Author, username__iexact=self.kwargs['username'])
         return author.get_articles()
+
+
+class AuthorSortedTopicListAPIView(ListAPIView):
+    """
+    Similar to AuthorSortedArticleListAPIView, but for the Topic model.
+    """
+    serializer_class = TopicListSerializer
+
+    def get_queryset(self) -> QuerySet:
+        author = get_object_or_404(Author, username__iexact=self.kwargs['username'])
+        return author.get_topics()
