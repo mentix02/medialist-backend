@@ -13,4 +13,7 @@ class TagListField(serializers.Field):
         return data
 
     def to_representation(self, value):
-        return [tag.name for tag in value.all()]
+        if isinstance(value, list):
+            return value
+        else:
+            return [tag.name for tag in value.all()]
