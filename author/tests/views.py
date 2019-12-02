@@ -6,14 +6,19 @@ import faker
 
 from author import utils as u
 from author.models import Author
+from topic.tests.generators import create_topic
 from author.tests.generators import create_author
+from topic.serializers import TopicListSerializer
 from author.serializers import AuthorListSerializer
+from article.tests.generators import create_article
+from article.serializers import ArticleListSerializer
 
 from django.shortcuts import reverse
 
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework.response import Response
+from rest_framework.serializers import ModelSerializer
 
 # Set up a global fake factory
 # and base url for testing.
@@ -400,3 +405,74 @@ class AuthorUpdateAPIViewTest(APITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(getattr(self.author, field), value)
+
+
+class AuthorSortedDataTest(APITestCase):
+    """
+    Tests for checking views for data that is grouped together
+    by their Author foreign key instances - data includes articles
+    and topics.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.author_1 = create_author()
+        cls.author_2 = create_author()
+
+        cls.topics_by_author_1 = [
+            create_topic(cls.author_1.id) for _ in range(2)
+        ]
+        cls.topics_by_author_2 = [
+            create_topic(cls.author_2.id) for _ in range(2)
+        ]
+
+        cls.articles_by_author_1 = [
+            create_article(author_id=cls.author_1.id, topic_id=random.choice(
+                [topic.pk for topic in cls.topics_by_author_2 + cls.topics_by_author_1]
+            )) for _ in range(5)
+        ]
+        cls.articles_by_author_2 = [
+            create_article(author_id=cls.author_2.id, topic_id=random.choice(
+                [topic.pk for topic in cls.topics_by_author_1 + cls.topics_by_author_2]
+            )) for _ in range(5)
+        ]
+
+    def make_test(self, model_type: str, model_serializer, url_name: str):
+        """
+        A custom generic test maker to not duplicate the same code over
+        and over - it takes a model_type that is a string of model types.
+        It could be "articles" or "topics" so that a getattr call can
+        get the data members from some string formatting as the variables
+        are named following a certain syntax. Then it makes a GET request
+        to the url_name that was provided with the apt parameters (in this
+        case, the username). Then it's simply a matter of asserting cases.
+        """
+
+        for author_id in [1, 2]:
+            username = getattr(self, f'author_{author_id}').username
+
+            instances = getattr(self, f'{model_type}_by_author_{author_id}')
+            instances_data = model_serializer(instances, many=True).data
+
+            response = self.client.get(reverse(url_name, kwargs={
+                'username': username
+            }))
+            data = u.get_json(response)
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(data['count'], len(instances_data))
+
+    def test_author_sorted_topics(self):
+        """
+        Make requests to /api/authors/detail/<username>/topics/ and get all
+        the topics by a particular author in JSON format. Simple.
+        """
+
+        self.make_test('topics', TopicListSerializer, 'author:topics')
+
+    def test_author_sorted_articles(self):
+        """
+        Similar to test_author_sorted_topics except for Article model.
+        """
+
+        self.make_test('articles', ArticleListSerializer, 'author:articles')
