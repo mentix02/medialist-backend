@@ -1,4 +1,5 @@
 from .views import (
+    AuthorSortedDataTest,
     AuthorUpdateAPIViewTest,
     AuthorRetrieveAPIViewTest,
     AuthorCreationAPIViewTest,
