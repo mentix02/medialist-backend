@@ -7,7 +7,8 @@ from author.views import (
     AuthorUpdateAPIView,
     AuthorVerifyAPIView,
     AuthorRetrieveTokenView,
-    AuthorSortedArticleListAPIView,
+    AuthorSortedTopicListAPIView,
+    AuthorSortedArticleListAPIView
 )
 
 app_name = 'author'
@@ -19,5 +20,6 @@ urlpatterns = [
     path('authenticate/', AuthorRetrieveTokenView.as_view(), name='authenticate'),
     path('detail/<slug:username>/', AuthorDetailAPIView.as_view(), name='detail'),
     path('verify/<uuid:secret_key>/', AuthorVerifyAPIView.as_view(), name='verify'),
+    path('detail/<slug:username>/topics/', AuthorSortedTopicListAPIView.as_view(), name='topics'),
     path('detail/<slug:username>/articles/', AuthorSortedArticleListAPIView.as_view(), name='articles')
 ]
