@@ -18,7 +18,6 @@ from django.shortcuts import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer
 
 # Set up a global fake factory
 # and base url for testing.
