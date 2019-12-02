@@ -152,7 +152,7 @@ class AuthorRetrieveAPIViewTest(APITestCase):
         for author in self.authors + [self.super_author]:
             response = self.client.post(BASE_URL + '/authenticate/', data={
                 'username': author.username,
-                'password': 'aaaaabbbbccccdd' # invalid password
+                'password': 'aaaaabbbbccccdd'  # invalid password
             })
             data = u.get_json(response)
 
