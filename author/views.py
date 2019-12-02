@@ -8,6 +8,7 @@ import re
 import typing
 
 from django.http import Http404
+from django.db.models import QuerySet
 from django.http.request import HttpRequest
 from django.contrib.auth import authenticate
 from django.core.exceptions import ObjectDoesNotExist
@@ -15,6 +16,7 @@ from django.shortcuts import redirect, get_object_or_404
 
 from author import utils as u
 from author.models import Author
+from article.serializers import ArticleListSerializer
 from author.serializers import (
     AuthorListSerializer,
     AuthorDetailSerializer,
@@ -246,3 +248,17 @@ class AuthorRetrieveTokenView(APIView):
             return Response({
                 'detail': 'Invalid credentials.'
             }, status=401)
+
+
+class AuthorSortedArticleListAPIView(ListAPIView):
+    """
+    Articles sorted by author - queried by username provided inside
+    of the url as a parameter. It doesn't query by an Article manager,
+    instead uses the get_articles method of the Author model -
+    fat models, thin views convention.
+    """
+    serializer_class = ArticleListSerializer
+
+    def get_queryset(self) -> QuerySet:
+        author = get_object_or_404(Author, username__iexact=self.kwargs['username'])
+        return author.get_articles()
