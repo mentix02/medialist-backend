@@ -1,5 +1,6 @@
 from article.models import Article
 from article.serializers.fields import TagListField
+from author.serializers import AuthorDetailSerializer
 
 from rest_framework import serializers
 
@@ -19,8 +20,8 @@ class ArticleListSerializer(serializers.ModelSerializer):
 
 class ArticleDetailSerializer(serializers.ModelSerializer):
     tags = TagListField()
+    author = AuthorDetailSerializer()
     topic = serializers.StringRelatedField()
-    author = serializers.StringRelatedField()
     thumbnail = serializers.URLField(source='get_thumbnail')
     timestamp = serializers.DateTimeField(format='%b. %d, %Y')
 
