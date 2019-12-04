@@ -5,7 +5,8 @@ from topic.views import (
     TopicDetailAPIView,
     TopicDeleteAPIView,
     TopicCreateAPIView,
-    TopicSortedArticlesAPIView,
+    TopicUpdateAPIView,
+    TopicSortedArticlesAPIView
 )
 
 app_name = 'topic'
@@ -15,5 +16,6 @@ urlpatterns = [
     path('create/', TopicCreateAPIView.as_view(), name='create'),
     path('delete/<slug:slug>/', TopicDeleteAPIView.as_view(), name='delete'),
     path('detail/<slug:slug>/', TopicDetailAPIView.as_view(), name='detail'),
+    path('detail/<slug:slug>/update/', TopicUpdateAPIView.as_view(), name='update'),
     path('detail/<slug:slug>/articles/', TopicSortedArticlesAPIView.as_view(), name='articles')
 ]
