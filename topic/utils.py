@@ -2,6 +2,7 @@ import logging
 
 from django.db.models import QuerySet
 from django.utils.text import slugify
+from django.core.exceptions import ObjectDoesNotExist
 
 from topic.models import Topic
 
@@ -53,3 +54,12 @@ def generate_slug_for_topic(topic: Topic, new_slug: str = None) -> str:
         return generate_slug_for_topic(topic, new_slug)
 
     return slug
+
+
+def topic_slug_is_available(slug: str) -> bool:
+    try:
+        Topic.objects.get(slug__iexact=slug)
+    except ObjectDoesNotExist:
+        return True
+    else:
+        return False
