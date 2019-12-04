@@ -3,6 +3,7 @@ CRUD views for the Topic model.
 """
 from author.models import Author
 
+from topic import utils as u
 from topic.models import Topic
 from topic.serializers import (
     TopicListSerializer,
@@ -11,6 +12,7 @@ from topic.serializers import (
 
 from article.serializers import ArticleListSerializer
 
+from django.utils.text import slugify
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -137,3 +139,39 @@ class TopicSortedArticlesAPIView(ListAPIView):
     def get_queryset(self):
         topic = get_object_or_404(Topic, slug__iexact=self.kwargs.get('slug', ''))
         return topic.get_articles()
+
+
+class TopicUpdateAPIView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    @staticmethod
+    def patch(request, slug: str) -> Response:
+
+        # Check if provided slug is valid and exists.
+        topic = get_object_or_404(Topic, slug__iexact=slug)
+
+        author: Author = request.user
+
+        # Check if Author owns the topic.
+        if topic.author != author:
+            return Response({
+                'detail': 'Updation not authorized.'
+            }, status=403)
+
+        data = {
+            'name': request.POST.get('name', topic.name),
+            'thumbnail': request.FILES.get('thumbnail', topic.thumbnail),
+            'description': request.POST.get('description', topic.description),
+            'thumbnail_url': request.FILES.get('thumbnail_url', topic.thumbnail_url)
+        }
+
+        if data['name'] == topic.name or u.topic_slug_is_available(slugify(data['name'])):
+            for field, value in data.items():
+                setattr(topic, field, value)
+            topic.save()
+            return Response(TopicDetailSerializer(topic).data)
+        else:
+            return Response({
+                'detail': f"Topic with name '{data['name']}' already exists."
+            }, status=409)
