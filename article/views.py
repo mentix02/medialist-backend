@@ -29,6 +29,10 @@ class RecentArticleListAPIView(ListAPIView):
 
 
 class ArticleDetailAPIView(RetrieveAPIView):
+    """
+    Simply queries the database for a matching slug with the slug
+    provided in the url and returns Serializer data as response.
+    """
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
     serializer_class = ArticleDetailSerializer
