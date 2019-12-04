@@ -49,7 +49,7 @@ class Article(models.Model):
 
     objects = ArticleManager()
 
-    tags = TaggableManager()
+    tags = TaggableManager(blank=True)
 
     # Main body of an Article.
     # No text limit. Not yet.
