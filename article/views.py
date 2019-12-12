@@ -6,7 +6,7 @@ from article.serializers import (
 )
 
 from django.utils.text import slugify
-from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -66,11 +66,12 @@ class ArticleCreateAPIView(APIView):
             try:
                 article_data = {
                     'title': title,
-                    'topic_id': data['topic'],
                     'content': data['content'],
+                    'topic_id': data['topic_id'],
                     'author_id': request.user.id,
                     'draft': (True if data.get('draft') else False),
                 }
+                tags = data['tags']
             except KeyError as field:
                 return Response({
                     'detail': f"Field {str(field)} not provided."
@@ -84,9 +85,16 @@ class ArticleCreateAPIView(APIView):
                     article_data['thumbnail'] = data.get('thumbnail')
                     article_data['thumbnail_url'] = data.get('thumbnail_url')
 
-                get_object_or_404(Topic, pk=article_data['topic_id'])
+                try:
+                    Topic.objects.get(pk=article_data['topic_id'])
+                except ObjectDoesNotExist:
+                    return Response({
+                        'detail': 'Topic not found.'
+                    }, status=404)
 
                 article = Article.objects.create(**article_data)
+                article.set_tags_from_string(tags)
+                article.save()
 
                 return Response(ArticleDetailSerializer(article).data, status=201)
         else:
