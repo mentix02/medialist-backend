@@ -1,6 +1,7 @@
 """
 Article model definition.
 """
+import typing
 import logging
 
 from django.db import models
@@ -168,6 +169,18 @@ class Article(models.Model):
         is simply 1 minus the objectivity.
         """
         return 1 - self.objectivity
+
+    def set_tags_from_string(self, tags: str) -> None:
+
+        def _replace(text: str, chars: typing.Iterable[str], value='') -> str:
+            for char in chars:
+                text = text.replace(char, value)
+            return text
+
+        tags: typing.List[str] = _replace(tags, ' "\'').split(',')
+
+        for tag in tags:
+            self.tags.add(tag)
 
     def __str__(self) -> str:
         """
