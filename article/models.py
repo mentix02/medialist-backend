@@ -8,6 +8,7 @@ from django.db import models
 from django.conf import settings
 
 from topic.models import Topic
+from backend.utils import replace
 
 from taggit.managers import TaggableManager
 from cloudinary.models import CloudinaryField
@@ -172,12 +173,7 @@ class Article(models.Model):
 
     def set_tags_from_string(self, tags: str) -> None:
 
-        def _replace(text: str, chars: typing.Iterable[str], value='') -> str:
-            for char in chars:
-                text = text.replace(char, value)
-            return text
-
-        tags: typing.List[str] = _replace(tags, ' "\'').split(',')
+        tags: typing.List[str] = replace(tags, ' "\'').split(',')
 
         for tag in tags:
             self.tags.add(tag)
