@@ -1,5 +1,5 @@
 """
-Helper utility functions.
+Global helper utility functions.
 """
 import json
 import typing
@@ -14,3 +14,9 @@ def get_json(response: Response) -> typing.Dict[typing.Any, typing.Any]:
 
 def auth_header(key: str) -> str:
     return 'Token {}'.format(key)
+
+
+def replace(text: str, chars: typing.Iterable[str], value: str = '') -> str:
+    for char in chars:
+        text = text.replace(char, value)
+    return text
