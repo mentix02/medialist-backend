@@ -1,1 +1,1 @@
-from article.tests.views import ArticleRetrievalTest
+from article.tests.views import ArticleRetrievalTest, ArticleCreationTest
