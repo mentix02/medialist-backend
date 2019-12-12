@@ -23,10 +23,10 @@ def create_article(draft: bool = random.random() > 0.93, **kwargs) -> Article:
 
     article = Article.objects.create(
         draft=draft,
-        tags=_random_tags(),
         title=fake.text(50).title()[:-1],
         topic_id=kwargs.get('topic_id') or random.choice(TOPIC_IDS),
         author_id=kwargs.get('author_id') or random.choice(AUTHOR_IDS),
         content='\n\n'.join([fake.sentence(170) for _ in range(random.randint(7, 10))]),
     )
+    article.set_tags_from_string(','.join(_random_tags()))
     return article
