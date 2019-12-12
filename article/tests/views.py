@@ -2,12 +2,17 @@ import random
 
 from backend import utils as u
 
+from django.utils import lorem_ipsum
 from django.shortcuts import reverse
 
+from topic.models import Topic
 from article.models import Article
-from topic.tests.generators import create_topic
 from author.tests.generators import create_author
 from article.tests.generators import create_article
+from topic.tests.generators import (
+    create_topic,
+    THUMBNAIL_URL_IDs
+)
 from article.serializers import (
     ArticleListSerializer,
     ArticleDetailSerializer
@@ -38,7 +43,6 @@ class ArticleRetrievalTest(APITestCase):
         )
 
     def test_recent_article_retrieval(self):
-
         response = self.client.get(reverse('article:recent'))
         data = u.get_json(response)
 
@@ -51,7 +55,6 @@ class ArticleRetrievalTest(APITestCase):
         self.assertEqual(data, serialized_data)
 
     def test_article_detail_retrieval(self):
-
         article = random.choice(self.articles)
 
         response = self.client.get(reverse('article:detail', kwargs={
@@ -65,3 +68,115 @@ class ArticleRetrievalTest(APITestCase):
             Article.objects.get(pk=article.pk)
         ).data
         self.assertEqual(data, serialized_data)
+
+
+class ArticleCreationTest(APITestCase):
+
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.author = create_author()
+        cls.topics = [create_topic(cls.author.pk) for _ in range(3)]
+        cls.article_data = {
+            'title': 'Hello World',
+            'tags': create_author,
+            'content': lorem_ipsum.paragraphs(4),
+            'topic_id': random.choice(cls.topics).id,
+            'thumbnail_url': 'https://picsum.photos/id/'
+                             f'{random.choice(THUMBNAIL_URL_IDs)}'
+                             '/1900/1080/',
+        }
+
+    def test_unauthenticated_article_creation(self):
+        """
+        Makes an unauthenticated request to /api/articles/create/ and
+        asserts proper output with error messages.
+        """
+
+        # No need to provided data since the view would return
+        # an error response without reading the POST request's data.
+        response = self.client.post(reverse('article:create'))
+        data = u.get_json(response)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(data, {
+            'detail': 'Authentication credentials were not provided.'
+        })
+
+    def test_authenticated_article_creation_invalid_data(self):
+        """
+        Make a valid authenticated request to /api/articles/create/ with
+        incomplete (read: invalid) data and check for error messages.
+        """
+
+        self.client.credentials(HTTP_AUTHORIZATION=u.auth_header(self.author.get_key()))
+
+        for field in self.article_data:
+            d = self.article_data.copy()
+            del d[field]
+
+            response = self.client.post(reverse('article:create'), data=d)
+            data = u.get_json(response)
+
+            self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+            if field != 'thumbnail_url':
+                self.assertEqual(data, {
+                    'detail': f"Field '{field}' not provided."
+                })
+            else:
+                self.assertEqual(data, {
+                    'detail': 'Either provide a url for an article thumbnail or an image upload.'
+                })
+
+    def test_authenticated_article_creation(self):
+        """
+        Finally test proper creation.
+        """
+
+        self.client.credentials(HTTP_AUTHORIZATION=u.auth_header(self.author.get_key()))
+
+        response = self.client.post(reverse('article:create'), data=self.article_data)
+        data = u.get_json(response)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(data, ArticleDetailSerializer(
+            Article.objects.first()
+        ).data)
+
+    def test_authenticated_article_creation_with_existing_name(self):
+        """
+        Due to the order of how the tests run, the test_authenticated_article_creation
+        should run before this test but for some reason the test database isn't populated
+        with the article created in the former test case. Thus, a new article is created
+        with the same data as self.article_data and
+        """
+
+        # Create an Article
+        Article.objects.create(**self.article_data)
+
+        self.client.credentials(HTTP_AUTHORIZATION=u.auth_header(self.author.get_key()))
+
+        response = self.client.post(reverse('article:create'), data=self.article_data)
+        data = u.get_json(response)
+
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(data, {
+            'detail': f"Article with title '{self.article_data['title']}' exists."
+        })
+
+    def test_article_creation_with_invalid_topic_id(self):
+        """
+        Pretty self explanatory - test with valid creds and data but for
+        a Topic instance that doesn't exist - with an id.
+        """
+        self.client.credentials(HTTP_AUTHORIZATION=u.auth_header(self.author.get_key()))
+
+        article_data = self.article_data.copy()
+        article_data['topic_id'] = Topic.objects.first().id + 10
+
+        response = self.client.post(reverse('article:create'), data=article_data)
+        data = u.get_json(response)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(data, {
+            'detail': 'Topic not found.'
+        })
