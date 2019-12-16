@@ -1,10 +1,12 @@
 from topic.models import Topic
+from backend.utils import replace
 from article.models import Article
 from article.serializers import (
     ArticleListSerializer,
     ArticleDetailSerializer
 )
 
+from django.db.models import QuerySet
 from django.utils.text import slugify
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -22,7 +24,7 @@ class RecentArticleListAPIView(ListAPIView):
     pagination_class = None
     serializer_class = ArticleListSerializer
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         N = self.request.GET.get('N', 12)
         articles = Article.objects.filter(draft=False)[:N]
         return articles
@@ -101,3 +103,21 @@ class ArticleCreateAPIView(APIView):
             return Response({
                 'detail': f"Article with title '{title}' exists."
             }, status=409)
+
+
+class ArticlesSortedByTagsAPIView(ListAPIView):
+    """
+    Sorts articles based on the tags provided in list.
+    """
+    serializer_class = ArticleListSerializer
+
+    def get_queryset(self) -> QuerySet:
+        tags_str: str = self.request.GET.get('tags', None)
+        if tags_str:
+            tags = replace(tags_str, ' "\'').split(',')
+            articles: QuerySet = Article.objects.filter(draft=False)
+            for tag in tags:
+                articles: QuerySet = articles.filter(tags__name__in=[tag]).distinct()
+            return articles
+        else:
+            return Article.objects.none()
