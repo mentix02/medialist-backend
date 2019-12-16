@@ -14,8 +14,10 @@ from rest_framework.parsers import FormParser, MultiPartParser
 
 class BookmarkAPIView(APIView):
     """
-    A generic view for either creating or destroying a Bookmark
-    instance based on it's existence - if a
+    A generic view for either creating or destroying a Bookmark instance
+    based on it's existence - if a bookmark by the authenticated author
+    exists (identified by the article_id), then it's deleted - if it doesn't,
+    it's created.
     """
 
     permission_classes = (IsAuthenticated,)
@@ -35,7 +37,11 @@ class BookmarkAPIView(APIView):
 
         try:
             article = Article.objects.get(id=article_id, draft=False)
-
+        except ObjectDoesNotExist:
+            return Response({
+                'detail': 'Article does not exist.'
+            }, status=404)
+        else:
             bookmark, created = Bookmark.objects.get_or_create(author=author, article=article)
 
             if not created:
@@ -53,10 +59,6 @@ class BookmarkAPIView(APIView):
                         'action': 'created'
                     }
                 }, status=201)
-        except ObjectDoesNotExist:
-            return Response({
-                'detail': 'Article does not exist.'
-            }, status=404)
 
 
 class ArticleSortedByBookmarksAPIView(ListAPIView):
