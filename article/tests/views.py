@@ -1,4 +1,6 @@
 import random
+import typing
+import itertools
 
 from backend import utils as u
 
@@ -18,6 +20,7 @@ from article.serializers import (
     ArticleDetailSerializer
 )
 
+from taggit.models import Tag
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -68,6 +71,40 @@ class ArticleRetrievalTest(APITestCase):
             Article.objects.get(pk=article.pk)
         ).data
         self.assertEqual(data, serialized_data)
+
+    def test_article_sorted_by_tags_retrieval(self):
+        """
+        Makes a combination of half of the tags in the test database and
+        tests the articles that contain them - half was used because it's
+        "good enough" to test for all the articles in all probability.
+        """
+        tags: typing.List[str] = [tag.name for tag in Tag.objects.all()]
+        tags_combinations = set()
+
+        for r in range(1, int(len(tags) // 2)):
+            tags_combinations |= set(itertools.combinations(tags, r))
+
+        for tag_c in tags_combinations:
+            url = f'{reverse("article:tags")}?tags={",".join(tag_c)}'
+
+            response = self.client.get(url)
+            data = u.get_json(response)
+
+            articles = Article.objects.filter(draft=False)
+            for tag in tag_c:
+                articles = articles.filter(tags__name__in=[tag]).distinct()
+
+            serialized_data = ArticleListSerializer(articles, many=True).data
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(data['results'], serialized_data)
+
+        # Test for when the GET argument "tags" isn't provided.
+        response = self.client.get(reverse('article:tags'))
+        data = u.get_json(response)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(data['results'], [])
 
 
 class ArticleCreationTest(APITestCase):
