@@ -5,13 +5,14 @@ from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
 from rest_framework.urlpatterns import format_suffix_patterns
 
-favicon_view = RedirectView.as_view(url='/static/images/favicon.ico', permanent=True)
+favicon_view = RedirectView.as_view(url='/static/images/earth.png', permanent=True)
 
 urlpatterns = [
     path('', include('feed.urls')),
     path('admin/', admin.site.urls),
     path('favicon.ico', favicon_view),
     path('api/', include('backend.api')),
+    path('api-auth/', include('rest_framework.urls')),
 ]
 
 if settings.DEBUG:
