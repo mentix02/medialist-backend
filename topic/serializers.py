@@ -1,6 +1,5 @@
 from topic.models import Topic
 from author.serializers import AuthorListSerializer
-from article.serializers import ArticleListSerializer
 
 from rest_framework import serializers
 
