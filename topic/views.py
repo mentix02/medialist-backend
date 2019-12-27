@@ -3,6 +3,7 @@ CRUD views for the Topic model.
 """
 from author.models import Author
 
+from topic import utils as u
 from topic.models import Topic
 from topic.serializers import (
     TopicListSerializer,
