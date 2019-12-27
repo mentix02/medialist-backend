@@ -20,6 +20,8 @@ from author.models import Author
 from author.utils import auth_header
 from topic.tests.generators import create_topic
 from author.tests.generators import create_author
+from article.tests.generators import create_article
+from article.serializers import ArticleListSerializer
 from topic.serializers import (
     TopicListSerializer,
     TopicDetailSerializer
@@ -49,6 +51,15 @@ class TopicRetrieveAPIViewTest(APITestCase):
             create_topic(cls.author.id) for _ in range(25)
         ]))
 
+        # For later testing.
+        cls.topic_1: Topic = random.choice(cls.topics)
+        cls.topic_2: Topic = random.choice(cls.topics)
+
+        kwargs = {'draft': False, 'author_id': cls.author.id}
+
+        cls.articles_for_topic_1 = [create_article(topic_id=cls.topic_1.id, **kwargs) for _ in range(5)]
+        cls.articles_for_topic_2 = [create_article(topic_id=cls.topic_2.id, **kwargs) for _ in range(5)]
+
     def test_topic_list_paginated(self) -> None:
         """
         Makes a request to /api/topics/ and checks for topics being
@@ -77,6 +88,28 @@ class TopicRetrieveAPIViewTest(APITestCase):
             data = u.get_json(response)
             serialized_data = TopicDetailSerializer(topic).data
             self.assertEqual(data, serialized_data)
+
+    def test_topic_sorted_articles_view(self) -> None:
+        """
+        Makes a GET request to /api/topics/detail/<slug>/articles/ to get
+        a list of articles written under the topic queried from <slug>.
+        """
+        # Create articles to populate the database.
+
+        for topic_id in (1, 2):
+
+            # Get data - both serialized and in ORM form.
+            topic = getattr(self, f'topic_{topic_id}')
+            articles = getattr(self, f'articles_for_topic_{topic_id}')
+            articles_serialized_data = list(reversed(ArticleListSerializer(articles, many=True).data))
+
+            # Make request.
+            response = self.client.get(reverse('topic:articles', kwargs={'slug': topic.slug}))
+            data = u.get_json(response)
+
+            # Assert equality.
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(data.get('results'), articles_serialized_data)
 
 
 class TopicCreationAPIViewTest(APITestCase):
