@@ -6,7 +6,7 @@ from rest_framework.serializers import ModelSerializer
 
 class BookmarkSerializer(ModelSerializer):
 
-    article = ArticleListSerializer(source='get_article')
+    article = ArticleListSerializer()
 
     class Meta:
         model = Bookmark

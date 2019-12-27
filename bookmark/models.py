@@ -6,14 +6,11 @@ from article.models import Article
 
 class Bookmark(models.Model):
 
-    author = models.ForeignKey(Author, on_delete=models.CASCADE)
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='bookmarks')
 
     class Meta:
         ordering = ('-pk',)
-
-    def get_article(self) -> Article:
-        return self.article
 
     def __str__(self) -> str:
         return f'{self.article} {self.author}'
