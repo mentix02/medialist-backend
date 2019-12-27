@@ -36,7 +36,7 @@ def create_author_secret_key_and_send_auth_email(sender, instance: Author, **kwa
     namespace = uuid.uuid1(instance.pk)
     secret_key = uuid.uuid5(namespace, instance.username)
 
-    if not (instance.secret_key or connection.settings_dict['NAME'][:5] == 'test_'):
+    if not (instance.secret_key or connection.settings_dict['NAME'].startswith('test_')):
         # Since Author does not have a previous
         # secret key, it means that this is a new
         # user and hence has to be sent an email
