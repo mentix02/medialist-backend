@@ -50,12 +50,13 @@ class ArticleRetrievalTest(APITestCase):
         data = u.get_json(response)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(data), Article.objects.filter(draft=False).count())
+        self.assertEqual(len(data['results']), Article.objects.filter(draft=False).count())
 
         serialized_data = ArticleListSerializer(
             Article.objects.filter(draft=False), many=True
         ).data
-        self.assertEqual(data, serialized_data)
+        self.assertEqual(data['count'], Article.objects.filter(draft=False).count())
+        self.assertEqual(data['results'], serialized_data)
 
     def test_article_detail_retrieval(self):
         article = random.choice(self.articles)

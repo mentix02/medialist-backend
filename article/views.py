@@ -1,6 +1,7 @@
 from topic.models import Topic
 from backend.utils import replace
 from article.models import Article
+from article.paginators import RecentArticleListAPIPaginator
 from article.serializers import (
     ArticleListSerializer,
     ArticleDetailSerializer
@@ -21,8 +22,8 @@ class RecentArticleListAPIView(ListAPIView):
     Gets the last N number of articles to display in a list. Used
     for getting recently written Articles that aren't drafts.
     """
-    pagination_class = None
     serializer_class = ArticleListSerializer
+    pagination_class = RecentArticleListAPIPaginator
 
     def get_queryset(self) -> QuerySet:
         N = self.request.GET.get('N', 12)
