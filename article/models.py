@@ -151,9 +151,12 @@ class Article(models.Model):
     def timestamp(self):
         return self.updated_on if self.updated_on else self.created_on
 
-    @property
-    def truncated_content(self):
+    def get_truncated_content(self) -> str:
         return self.content[:150] + '...'
+
+    @property
+    def truncated_content(self) -> str:
+        return self.get_truncated_content()
 
     @property
     def objective(self) -> bool:
