@@ -9,13 +9,13 @@ class ArticleListSerializer(serializers.ModelSerializer):
     tags = TagListField()
     topic = serializers.StringRelatedField()
     author = serializers.StringRelatedField()
-    truncated_content = serializers.StringRelatedField()
+    content = serializers.StringRelatedField(source='get_truncated_content')
     thumbnail = serializers.URLField(source='get_thumbnail')
     timestamp = serializers.DateTimeField(format='%b. %d, %Y')
 
     class Meta:
         model = Article
-        exclude = ('content', 'updated_on', 'created_on', 'thumbnail_url', 'draft')
+        exclude = ('updated_on', 'created_on', 'thumbnail_url', 'draft')
 
 
 class ArticleDetailSerializer(serializers.ModelSerializer):
