@@ -113,10 +113,11 @@ class ArticleCreationTest(APITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         cls.author = create_author()
+        cls.author.verify()
         cls.topics = [create_topic(cls.author.pk) for _ in range(3)]
         cls.article_data = {
             'title': 'Hello World',
-            'tags': create_author,
+            'tags': 'hello,world',
             'content': lorem_ipsum.paragraphs(4),
             'topic_id': random.choice(cls.topics).id,
             'thumbnail_url': 'https://picsum.photos/id/'

@@ -1,6 +1,7 @@
 from topic.models import Topic
 from backend.utils import replace
 from article.models import Article
+from article.permissions import IsVerified
 from article.paginators import RecentArticleListAPIPaginator
 from article.serializers import (
     ArticleListSerializer,
@@ -13,7 +14,6 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 
@@ -44,7 +44,7 @@ class ArticleDetailAPIView(RetrieveAPIView):
 
 class ArticleCreateAPIView(APIView):
 
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsVerified,)
 
     @staticmethod
     def post(request):
