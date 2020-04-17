@@ -6,6 +6,7 @@ import logging
 
 from django.db import models
 from django.conf import settings
+from django.utils.text import Truncator
 
 from topic.models import Topic
 from backend.utils import replace
@@ -87,7 +88,8 @@ class Article(models.Model):
     # user can select a "None" option when
     # writing a new Article - a topic HAS
     # to be provided by a user.
-    topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True, related_name='articles')
+    topic = models.ForeignKey(Topic, on_delete=models.SET_NULL,
+                              null=True, related_name='articles')
 
     # Every Article instance has to be authored
     # (no pun intended) by an Author. But it CAN
@@ -110,7 +112,10 @@ class Article(models.Model):
     # recommends us to do it. It's better that way because
     # now I can have circular imports for referencing Article
     # model inside of the author/models.py file or vice versa.
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='articles')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL,
+                               null=True,
+                               related_name='articles',
+                               on_delete=models.SET_NULL,)
 
     # This field is just for querying Articles
     # in a URL friendly way. A slug is just a
@@ -151,8 +156,12 @@ class Article(models.Model):
     def timestamp(self):
         return self.updated_on if self.updated_on else self.created_on
 
-    def get_truncated_content(self) -> str:
-        return self.content[:150] + '...'
+    def get_truncated_content(self, length: int = 20) -> str:
+        try:
+            length = int(length)
+        except ValueError:
+            return self.content
+        return Truncator(self.content).words(length, truncate=' …')
 
     @property
     def truncated_content(self) -> str:
