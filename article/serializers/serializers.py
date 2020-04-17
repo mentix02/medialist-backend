@@ -9,9 +9,9 @@ class ArticleListSerializer(serializers.ModelSerializer):
     tags = TagListField()
     topic = serializers.StringRelatedField()
     author = serializers.StringRelatedField()
-    content = serializers.StringRelatedField(source='get_truncated_content')
     thumbnail = serializers.URLField(source='get_thumbnail')
     timestamp = serializers.DateTimeField(format='%b. %d, %Y')
+    content = serializers.StringRelatedField(source='get_truncated_content')
 
     class Meta:
         model = Article
