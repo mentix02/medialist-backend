@@ -14,6 +14,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import NotAcceptable
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 
@@ -26,8 +27,14 @@ class RecentArticleListAPIView(ListAPIView):
     pagination_class = RecentArticleListAPIPaginator
 
     def get_queryset(self) -> QuerySet:
-        N = self.request.GET.get('N', 12)
-        articles = Article.objects.filter(draft=False)[:N]
+        n = self.request.GET.get('n', 12)
+        try:
+            n = int(n)
+        except ValueError:
+            raise NotAcceptable('Invalid value for n provided.')
+        if n >= 20:
+            raise NotAcceptable("Can't retrieve more than 20 articles.")
+        articles = Article.objects.filter(draft=False)[:n]
         return articles
 
 

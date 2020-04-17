@@ -58,6 +58,22 @@ class ArticleRetrievalTest(APITestCase):
         self.assertEqual(data['count'], Article.objects.filter(draft=False).count())
         self.assertEqual(data['results'], serialized_data)
 
+    def test_limit_exceeding_recent_article(self):
+        n = random.randint(21, 100)
+        response = self.client.get(f"{reverse('article:recent')}?n={n}")
+        data = u.get_json(response)
+
+        self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
+        self.assertEqual(data['detail'], "Can't retrieve more than 20 articles.")
+
+    def test_invalid_n_recent_articles_param(self):
+        for n in ['abcd', '34e1', '0x3', '3.01', '301ea']:
+            response = self.client.get(f"{reverse('article:recent')}?n={n}")
+            data = u.get_json(response)
+
+            self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
+            self.assertEqual(data['detail'], 'Invalid value for n provided.')
+
     def test_article_detail_retrieval(self):
         article = random.choice(self.articles)
 
