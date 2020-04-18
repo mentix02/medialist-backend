@@ -38,7 +38,7 @@ def create_article(draft: bool = random.random() > 0.93, **kwargs) -> Article:
             content='\n\n'.join([fake.sentence(170) for _ in range(random.randint(7, 10))]),
         )
     except IndexError:
-        raise Exception('Create some topics first.')
+        print('Create some topics first.')
     else:
         article.set_tags_from_string(','.join(_random_tags()))
         return article
