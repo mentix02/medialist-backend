@@ -3,10 +3,7 @@ from backend.utils import replace
 from article.models import Article
 from article.permissions import IsVerified
 from article.paginators import RecentArticleListAPIPaginator
-from article.serializers import (
-    ArticleListSerializer,
-    ArticleDetailSerializer
-)
+from article.serializers import ArticleListSerializer, ArticleDetailSerializer
 
 from django.db.models import QuerySet
 from django.utils.text import slugify
@@ -23,6 +20,7 @@ class RecentArticleListAPIView(ListAPIView):
     Gets the last N number of articles to display in a list. Used
     for getting recently written Articles that aren't drafts.
     """
+
     serializer_class = ArticleListSerializer
     pagination_class = RecentArticleListAPIPaginator
 
@@ -43,6 +41,7 @@ class ArticleDetailAPIView(RetrieveAPIView):
     Simply queries the database for a matching slug with the slug
     provided in the url and returns Serializer data as response.
     """
+
     lookup_field = 'slug'
     lookup_url_kwarg = 'slug'
     serializer_class = ArticleDetailSerializer
@@ -63,9 +62,7 @@ class ArticleCreateAPIView(APIView):
         title = data.get(key='title')
 
         if not title:
-            return Response({
-                'detail': "Field 'title' not provided."
-            }, status=422)
+            return Response({'detail': "Field 'title' not provided."}, status=422)
 
         slug = slugify(title)
 
@@ -83,14 +80,17 @@ class ArticleCreateAPIView(APIView):
                 }
                 tags = data['tags']
             except KeyError as field:
-                return Response({
-                    'detail': f"Field {str(field)} not provided."
-                }, status=422)
+                return Response(
+                    {'detail': f"Field {str(field)} not provided."}, status=422
+                )
             else:
                 if not (data.get('thumbnail_url') or request.FILES.get('thumbnail')):
-                    return Response({
-                        'detail': 'Either provide a url for an article thumbnail or an image upload.'
-                    }, status=422)
+                    return Response(
+                        {
+                            'detail': 'Either provide a url for an article thumbnail or an image upload.'
+                        },
+                        status=422,
+                    )
                 else:
                     article_data['thumbnail'] = data.get('thumbnail')
                     article_data['thumbnail_url'] = data.get('thumbnail_url')
@@ -98,9 +98,7 @@ class ArticleCreateAPIView(APIView):
                 try:
                     Topic.objects.get(pk=article_data['topic_id'])
                 except ObjectDoesNotExist:
-                    return Response({
-                        'detail': 'Topic not found.'
-                    }, status=404)
+                    return Response({'detail': 'Topic not found.'}, status=404)
 
                 article = Article.objects.create(**article_data)
                 article.set_tags_from_string(tags)
@@ -108,15 +106,16 @@ class ArticleCreateAPIView(APIView):
 
                 return Response(ArticleDetailSerializer(article).data, status=201)
         else:
-            return Response({
-                'detail': f"Article with title '{title}' exists."
-            }, status=409)
+            return Response(
+                {'detail': f"Article with title '{title}' exists."}, status=409
+            )
 
 
 class ArticlesSortedByTagsAPIView(ListAPIView):
     """
     Sorts articles based on the tags provided in list.
     """
+
     serializer_class = ArticleListSerializer
 
     def get_queryset(self) -> QuerySet:

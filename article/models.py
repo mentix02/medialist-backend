@@ -88,8 +88,9 @@ class Article(models.Model):
     # user can select a "None" option when
     # writing a new Article - a topic HAS
     # to be provided by a user.
-    topic = models.ForeignKey(Topic, on_delete=models.SET_NULL,
-                              null=True, related_name='articles')
+    topic = models.ForeignKey(
+        Topic, on_delete=models.SET_NULL, null=True, related_name='articles'
+    )
 
     # Every Article instance has to be authored
     # (no pun intended) by an Author. But it CAN
@@ -112,10 +113,12 @@ class Article(models.Model):
     # recommends us to do it. It's better that way because
     # now I can have circular imports for referencing Article
     # model inside of the author/models.py file or vice versa.
-    author = models.ForeignKey(settings.AUTH_USER_MODEL,
-                               null=True,
-                               related_name='articles',
-                               on_delete=models.SET_NULL,)
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        related_name='articles',
+        on_delete=models.SET_NULL,
+    )
 
     # This field is just for querying Articles
     # in a URL friendly way. A slug is just a
@@ -138,7 +141,9 @@ class Article(models.Model):
 
     # In case Author does not want to upload a
     # file image him/herself.
-    thumbnail_url = models.URLField(default='https://picsum.photos/1900/1080', null=True, blank=True)
+    thumbnail_url = models.URLField(
+        default='https://picsum.photos/1900/1080', null=True, blank=True
+    )
 
     def get_thumbnail(self):
         """
