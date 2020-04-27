@@ -17,6 +17,13 @@ def auth_header(key: str) -> str:
 
 
 def replace(text: str, chars: typing.Iterable[str], value: str = '') -> str:
-    for char in chars:
-        text = text.replace(char, value)
-    return text
+    """
+    Replaces all character in a string with
+    provided value and returns new string.
+    """
+    text  = list(text)
+    chars = set(chars)
+    for index in range(len(text)):
+        if text[index] in chars:
+            text[index] = value
+    return ''.join(text)
