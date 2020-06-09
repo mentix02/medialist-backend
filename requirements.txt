@@ -1,5 +1,6 @@
 Faker
 Django
+textblob
 cloudinary
 mysqlclient
 django-redis
